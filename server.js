@@ -45,7 +45,7 @@ function promptUser() {
         }
     ]).then((res) => {
         console.log(`You have chosen ${res.userSelect}.`)
-        switch(res.userSelect){
+        switch (res.userSelect) {
             case 'View all departments':
                 viewAllDept();
                 break;
@@ -75,13 +75,87 @@ function viewAllDept() {
     let query = 'SELECT * FROM department';
     db.query(query, (err, result) => {
         if (err) {
-          console.log(err);
+            console.log(err);
         }
         console.log(result);
-      })
+        promptUser();
+    })
 };
 
+function viewAllRoles() {
+    let query = 'SELECT * FROM role';
+    db.query(query, (err, res) => {
+        if (err) {
+            console.log(err);
+        }
+        console.log(res);
+        promptUser();
+    })
+};
 
+function viewAllEmpl() {
+    let query = `SELECT 
+    employee.id, 
+    employee.first_name, 
+    employee.last_name, 
+    role.title, 
+    department.name AS department, 
+    role.salary, 
+    CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+    FROM employee
+    LEFT JOIN role
+    ON employee.role_id = role.id
+    LEFT JOIN department
+    ON department.id = role.department_id
+    LEFT JOIN employee manager
+    ON manager.id = employee.manager_id`;
+    db.query(query, (err, res) => {
+        if (err) {
+            console.log(err);
+        }
+        console.log(res);
+        promptUser();
+    })
+};
+
+function addDept() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'deptName',
+            message: 'New Department Name: '
+        }
+    ]).then((res) => {
+        let query = 'INSERT INTO department SET ?';
+        db.query(query, { name: res.deptName }, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(`${res.deptName} has been added to the database.`);  //NEED TO FIX THIS
+            promptUser();
+        })
+    })
+};
+
+function addRole() {
+    inquirer.prompt ([
+        {
+            type: 'inpt',
+            name: 'name',
+            message: 'What is the name of the role? '
+        },
+        {
+            tpye: 'input',
+            name: 'salary',
+            message: 'What is the salary of the role? '
+        },
+        {
+            type: 'list',
+            name: 'department',
+            message: 'Which department does the role belong to? '
+        }
+    ])
+}
 
 
 // Default response for any other request (Not Found)
