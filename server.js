@@ -27,9 +27,59 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_tracker database.`)
 );
 
+function promptUser() {
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'userSelect',
+            message: 'What would you like to do?',
+            choices: [
+                'View all departments',
+                'View all roles',
+                'View all employees',
+                'Add a department',
+                'Add a role',
+                'Add an employee',
+                'Update an employee role'
+            ]
+        }
+    ]).then((res) => {
+        console.log(`You have chosen ${res.userSelect}.`)
+        switch(res.userSelect){
+            case 'View all departments':
+                viewAllDept();
+                break;
+            case 'View all roles':
+                viewAllRoles();
+                break;
+            case 'View all employees':
+                viewAllEmpl();
+                break;
+            case 'Add a department':
+                addDept();
+                break;
+            case 'Add a role':
+                addRole();
+                break;
+            case 'Add an employee':
+                addEmpl();
+                break;
+            case 'Update an employee role':
+                updateEmplRole();
+                break;
+        }
+    })
+};
 
-
-
+function viewAllDept() {
+    let query = 'SELECT * FROM department';
+    db.query(query, (err, result) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log(result);
+      })
+};
 
 
 
@@ -42,3 +92,6 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:3001`);
 });
+
+//Call to function to start the app
+promptUser();
