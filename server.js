@@ -127,18 +127,33 @@ function addDept() {
         }
     ]).then((res) => {
         let query = 'INSERT INTO department SET ?';
+        let deptName = res.deptName;
         db.query(query, { name: res.deptName }, (err, res) => {
             if (err) {
                 console.log(err);
             }
-            console.log(`${res.deptName} has been added to the database.`);  //NEED TO FIX THIS
+            console.log(`${deptName} has been added to the database.`);
             promptUser();
         })
     })
 };
 
 function addRole() {
-    inquirer.prompt ([
+    let query = `SELECT department.id, department.name FROM department`;
+    db.query(query, (err, res) => {
+        if (err) {
+            console.log(err);
+        }
+        let departments = res.map(({ id, name }) => ({
+            value: id,
+            name: name
+        }));
+        addToRole(departments);
+    })
+};
+
+function addToRole(departments) {
+    inquirer.prompt([
         {
             type: 'inpt',
             name: 'name',
@@ -152,11 +167,133 @@ function addRole() {
         {
             type: 'list',
             name: 'department',
-            message: 'Which department does the role belong to? '
+            message: 'Which department does the role belong to? ',
+            choices: departments
         }
-    ])
-}
+    ]).then((res) => {
+        let query = 'INSERT INTO role SET ?';
+        let name = res.name;
+        db.query(query, { title: res.name, salary: res.salary, department_id: res.department }, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(`${name} has been added to the database.`);
+            promptUser();
+        })
+    })
+};
 
+function addEmpl() {
+    let query = `SELECT role.id, role.title FROM role`;
+    let query2 = `SELECT employee.id, employee.first_name, employee.last_name FROM employee`;
+    db.query(query, (err, res) => {
+        if (err) {
+            console.log(err);
+        }
+        let roles = res.map(({ id, title }) => ({
+            value: id,
+            name: title
+        }));
+        db.query(query2, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            let employees = res.map(({ id, first_name, last_name }) => ({
+                value: id,
+                name: first_name + ' ' + last_name
+            }));
+            employees.push({ value: null, name: 'None' });
+            addToEmpl(roles, employees);
+        })
+    })
+};
+
+function addToEmpl(roles, employees) {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'What is the first name of the employee?',
+            name: 'firstName'
+        },
+        {
+            tpye: 'input',
+            message: 'What is the last name of the employee?',
+            name: 'lastName'
+        },
+        {
+            type: 'list',
+            message: 'What is the role of the employee?',
+            name: 'role',
+            choices: roles
+        },
+        {
+            type: 'list',
+            message: 'Who is their manager?',
+            name: 'manager',
+            choices: employees
+        }
+    ]).then((res) => {
+        let query = 'INSERT INTO employee SET ?';
+        let fullName = res.firstName + '' + res.lastName;
+        db.query(query, { first_name: res.firstName, last_name: res.lastName, role_id: res.role, manager_id: res.manager }, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(`${fullName} has been added to the database.`);
+            promptUser();
+        })
+    })
+};
+
+function updateEmplRole() {
+    let query = `SELECT role.id, role.title FROM role`;
+    let query2 = `SELECT employee.id, employee.first_name, employee.last_name FROM employee`;
+    db.query(query, (err, res) => {
+        if (err) {
+            console.log(err);
+        }
+        let roles = res.map(({ id, title }) => ({
+            value: id,
+            name: title
+        }));
+        db.query(query2, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            let employees = res.map(({ id, first_name, last_name }) => ({
+                value: id,
+                name: first_name + ' ' + last_name
+            }));
+            ToupdateEmplRole(employees, roles);
+        })
+    })
+};
+
+function ToupdateEmplRole(employees, roles) {
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: "Which employee's role do you want to update?",
+            name: 'employee',
+            choices: employees
+        },
+        {
+            type: 'list',
+            message: 'Which role do you want to assign the selected employee?',
+            name: 'role',
+            choices: roles
+        }
+    ]).then((res) => {
+        let query = 'UPDATE employee SET role_id = ? WHERE id = ?';   //BUG WITH THIS LINE
+        db.query(query, { role_id: res.role, id: res.employee }, (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(`Employee has been updated.`);
+            promptUser();
+        })
+    })
+};
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
