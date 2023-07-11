@@ -284,8 +284,8 @@ function ToupdateEmplRole(employees, roles) {
             choices: roles
         }
     ]).then((res) => {
-        let query = 'UPDATE employee SET role_id = ? WHERE id = ?';   //BUG WITH THIS LINE
-        db.query(query, { role_id: res.role, id: res.employee }, (err, res) => {
+        let query = 'UPDATE employee SET role_id = ? WHERE id = ?';
+        db.query(query, [res.role, res.employee], (err, res) => {
             if (err) {
                 console.log(err);
             }
@@ -301,7 +301,6 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:3001`);
 });
 
 //Call to function to start the app
